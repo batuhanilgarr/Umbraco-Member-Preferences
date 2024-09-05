@@ -1,0 +1,41 @@
+@model IEnumerable<StockMarket.Models.StockMarketData>
+
+<table>
+    <thead>
+    <tr>
+        <th>Code</th>
+        <th>Description</th>
+        <th>Open</th>
+        <th>High</th>
+        <th>Low</th>
+        <th>Last</th>
+        <th>Close</th>
+        <th>Previous Close</th>
+        <th>DateTime</th>
+        <th>Daily Change</th>
+        <th>Daily Change Percent</th>
+        <th>Volatility</th>
+        <th>Daily Direction</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var stock in Model)
+    {
+        <tr>
+            <td>@stock.Code</td>
+            <td>@stock.Description</td>
+            <td>@stock.Open</td>
+            <td>@stock.High</td>
+            <td>@stock.Low</td>
+            <td>@stock.Last</td>
+            <td>@stock.Close</td>
+            <td>@stock.PreviousClose</td>
+            <td>@stock.DateTime</td>
+            <td>@stock.DailyChange</td>
+            <td>@stock.DailyChangePercent</td>
+            <td>@stock.Volatility</td>
+            <td>@stock.DailyDirection</td>
+        </tr>
+    }
+    </tbody>
+</table>

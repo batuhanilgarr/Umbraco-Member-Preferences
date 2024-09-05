@@ -1,0 +1,36 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.PublishedContent
+@using Umbraco.Cms.Core.Routing
+@using Umbraco.Extensions
+@{
+    var root = Umbraco.Content(1057);
+}
+
+<style>
+    .nav-item .nav-link.active{
+        color: red !important;
+    }
+</style>
+
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">Stock Exchange</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                
+                @foreach (var child in root.Children){
+                    <li class="nav-item">
+                        <a class="nav-link @(child.IsAncestorOrSelf(Model) ? "active" : null)" aria-current="page" href="@child.Url()">@child.Name</a>
+                    </li>
+                }
+                
+                
+            </ul>
+        </div>
+    </div>
+</nav>

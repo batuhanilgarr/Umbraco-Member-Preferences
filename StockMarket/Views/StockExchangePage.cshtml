@@ -1,0 +1,40 @@
+﻿@using Umbraco.Cms.Web.Common.PublishedModels;
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ContentModels.StockExchangePage>
+@using ContentModels = Umbraco.Cms.Web.Common.PublishedModels;
+@{
+	Layout = "_Layout.cshtml";
+}
+
+
+<div class="container">
+	@Html.Raw(Model.LoginStatus)
+	<div class="d-flex flex-column justify-content-center align-item-center">
+		<div class="d-flex">
+			<img src="https://picsum.photos/200/300" alt="">
+		</div>
+		<div class="form-check">
+			<input class="form-check-input" type="checkbox" value="" id="flexCheckDefault1">
+			<label class="form-check-label" for="flexCheckDefault1">
+				1 checkbox
+			</label>
+		</div>
+
+		<div class="form-check">
+			<input class="form-check-input" type="checkbox" value="" id="flexCheckDefault2">
+			<label class="form-check-label" for="flexCheckDefault2">
+				2 checkbox
+			</label>
+		</div>
+
+		<div class="form-check">
+			<input class="form-check-input" type="checkbox" value="" id="flexCheckDefault3">
+			<label class="form-check-label" for="flexCheckDefault3">
+				3 checkbox
+			</label>
+		</div>
+
+		<a href="" class="btn btn-primary">Submit</a>
+	</div>
+	
+</div>
+
