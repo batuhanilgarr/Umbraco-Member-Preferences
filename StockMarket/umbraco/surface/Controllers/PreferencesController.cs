@@ -22,9 +22,9 @@ namespace StockMarket.Controllers
         public IActionResult SavePreferences([FromBody] PreferencesModel model)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized("User not logged in");
 
             var preferencesJson = JsonConvert.SerializeObject(model.Checkboxes);
-
             var userPreferences = _context.UserPreferences.FirstOrDefault(up => up.UserId == userId);
 
             if (userPreferences != null)
@@ -51,9 +51,9 @@ namespace StockMarket.Controllers
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null) return Unauthorized("User not logged in");
 
                 var userPreferences = _context.UserPreferences.FirstOrDefault(up => up.UserId == userId);
-
                 var checkboxes = userPreferences != null
                     ? JsonConvert.DeserializeObject<List<string>>(userPreferences.SelectedCheckboxes)
                     : new List<string>();
@@ -64,6 +64,37 @@ namespace StockMarket.Controllers
             {
                 return StatusCode(500, new { error = ex.Message });
             }
+        }
+
+        
+        public class RemovePreferenceModel
+        {
+            public string Currency { get; set; }
+            public decimal Rate { get; set; }
+        }
+        
+        [HttpDelete("removePreference")]
+        public IActionResult RemovePreference([FromBody] RemovePreferenceModel model)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized("User not logged in");
+
+            var userPreferences = _context.UserPreferences.FirstOrDefault(up => up.UserId == userId);
+            if (userPreferences == null) return NotFound("User preferences not found");
+
+            var checkboxes = userPreferences.SelectedCheckboxes != null
+                ? JsonConvert.DeserializeObject<List<string>>(userPreferences.SelectedCheckboxes)
+                : new List<string>();
+
+            var itemToRemove = $"{model.Currency}: {model.Rate.ToString("F4")}";
+
+            checkboxes.Remove(itemToRemove);
+
+            userPreferences.SelectedCheckboxes = JsonConvert.SerializeObject(checkboxes);
+            _context.UserPreferences.Update(userPreferences);
+            _context.SaveChanges();
+
+            return Ok();
         }
     }
 }

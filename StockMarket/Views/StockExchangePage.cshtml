@@ -6,35 +6,144 @@
 }
 
 
-<div class="container">
+
+dotnet build<div class="container">
 	@Html.Raw(Model.LoginStatus)
-	<div class="d-flex flex-column justify-content-center align-item-center">
-		<div class="d-flex">
-			<img src="https://picsum.photos/200/300" alt="">
-		</div>
-		<div class="form-check">
-			<input class="form-check-input" type="checkbox" value="" id="flexCheckDefault1">
-			<label class="form-check-label" for="flexCheckDefault1">
-				1 checkbox
-			</label>
-		</div>
-
-		<div class="form-check">
-			<input class="form-check-input" type="checkbox" value="" id="flexCheckDefault2">
-			<label class="form-check-label" for="flexCheckDefault2">
-				2 checkbox
-			</label>
-		</div>
-
-		<div class="form-check">
-			<input class="form-check-input" type="checkbox" value="" id="flexCheckDefault3">
-			<label class="form-check-label" for="flexCheckDefault3">
-				3 checkbox
-			</label>
-		</div>
-
-		<a href="" class="btn btn-primary">Submit</a>
+	<div>
+		<h3>Favoriler</h3>
+		<ul id="favoritesList"></ul>
 	</div>
-	
+
+	<div id="exchange-rates">
+		<h3>Exchange Rates</h3>
+		<pre id="exchangeRatesOutput">Loading...</pre>
+	</div>
+	<a href="#" class="btn btn-primary">Submit</a>
 </div>
 
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		loadFavorites();
+		fetchExchangeRates();
+	});
+
+	async function fetchExchangeRates() {
+		try {
+			const response = await fetch('/umbraco/surface/api/exchangerates/latest');
+			if (!response.ok) throw new Error('Failed to fetch exchange rates.');
+
+			const data = await response.json();
+			if (!data || !data.base || !data.date || !data.rates) throw new Error('Invalid data format from API');
+
+			const exchangeRatesOutput = document.getElementById('exchangeRatesOutput');
+			exchangeRatesOutput.innerHTML = '';
+
+			for (const [currency, rate] of Object.entries(data.rates)) {
+				const rateElement = createRateElement(currency, rate);
+				exchangeRatesOutput.appendChild(rateElement);
+			}
+		} catch (error) {
+			console.error('Error fetching exchange rates:', error);
+			document.getElementById('exchangeRatesOutput').textContent = 'Error fetching exchange rates.';
+		}
+	}
+
+	function createRateElement(currency, rate) {
+		const rateElement = document.createElement('div');
+		rateElement.id = `rate-${currency}`;
+		rateElement.innerHTML = `${currency}: ${rate.toFixed(4)}`;
+
+		const addButton = document.createElement('button');
+		addButton.textContent = 'Add to Favorites';
+		addButton.onclick = () => addToFavorites(currency, rate, rateElement);
+
+		rateElement.appendChild(addButton);
+		return rateElement;
+	}
+
+	function addToFavorites(currency, rate, rateElement) {
+		const favoritesList = document.getElementById('favoritesList');
+		const favoriteItem = document.createElement('li');
+		favoriteItem.textContent = `${currency}: ${rate.toFixed(4)}`;
+
+		const removeButton = document.createElement('button');
+		removeButton.textContent = 'Remove';
+		removeButton.onclick = () => {
+			favoriteItem.remove();
+			restoreRateToList(currency, rate);
+			removeFromFavorites(currency, rate); // Include rate here
+		};
+
+		favoriteItem.appendChild(removeButton);
+		favoritesList.appendChild(favoriteItem);
+		rateElement.remove();
+
+		saveFavorites(); // Save favorites after adding
+	}
+
+	function removeFromFavorites(currency, rate) {
+		fetch('/umbraco/surface/api/preferences/removePreference', {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ currency, rate }) // Send both currency and rate
+		})
+			.then(response => {
+				if (!response.ok) throw new Error('Failed to remove preference.');
+			})
+			.catch(error => {
+				console.error('Error removing preference:', error);
+			});
+	}
+
+	function restoreRateToList(currency, rate) {
+		const exchangeRatesOutput = document.getElementById('exchangeRatesOutput');
+		const rateElement = createRateElement(currency, rate);
+		exchangeRatesOutput.appendChild(rateElement);
+	}
+
+	function saveFavorites() {
+		const favoriteItems = Array.from(document.querySelectorAll('#favoritesList li')).map(item => item.textContent.split('Remove')[0].trim()); // Remove 'Remove' text
+		fetch('/umbraco/surface/api/preferences/savePreferences', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ checkboxes: favoriteItems })
+		})
+			.then(response => {
+				if (!response.ok) throw new Error('Failed to save preferences.');
+				alert('Preferences saved successfully.');
+			})
+			.catch(error => {
+				console.error('Error saving preferences:', error);
+				alert('Error saving preferences.');
+			});
+	}
+
+	function loadFavorites() {
+		fetch('/umbraco/surface/api/preferences/loadPreferences')
+			.then(response => response.json())
+			.then(favorites => {
+				const favoritesList = document.getElementById('favoritesList');
+				favorites.forEach(item => {
+					const [currency, rate] = item.split(': ');
+					const favoriteItem = document.createElement('li');
+					favoriteItem.textContent = `${currency}: ${rate}`;
+
+					const removeButton = document.createElement('button');
+					removeButton.textContent = 'Remove';
+					removeButton.onclick = () => {
+						favoriteItem.remove();
+						restoreRateToList(currency, parseFloat(rate));
+						saveFavorites(); // Save favorites after removing
+					};
+
+					favoriteItem.appendChild(removeButton);
+					favoritesList.appendChild(favoriteItem);
+				});
+			})
+			.catch(error => console.error('Error loading preferences:', error));
+	}
+</script>
