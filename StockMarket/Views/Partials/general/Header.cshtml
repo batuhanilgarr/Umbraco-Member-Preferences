@@ -1,15 +1,16 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
-@using Umbraco.Cms.Core
-@using Umbraco.Cms.Core.Models
 @using Umbraco.Cms.Core.Models.PublishedContent
 @using Umbraco.Cms.Core.Routing
 @using Umbraco.Extensions
+@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 @{
     var root = Umbraco.Content(1057);
+    var isLoggedIn = HttpContextAccessor.HttpContext.User.Identity.IsAuthenticated;
 }
 
 <style>
-    .nav-item .nav-link.active{
+    .nav-item .nav-link.active {
         color: red !important;
     }
 </style>
@@ -22,14 +23,13 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                
                 @foreach (var child in root.Children){
-                    <li class="nav-item">
-                        <a class="nav-link @(child.IsAncestorOrSelf(Model) ? "active" : null)" aria-current="page" href="@child.Url()">@child.Name</a>
-                    </li>
+                    if (!isLoggedIn || child.Id != 1063){
+                        <li class="nav-item">
+                            <a class="nav-link @(child.IsAncestorOrSelf(Model) ? "active" : null)" aria-current="page" href="@child.Url()">@child.Name</a>
+                        </li>
+                    }
                 }
-                
-                
             </ul>
         </div>
     </div>
