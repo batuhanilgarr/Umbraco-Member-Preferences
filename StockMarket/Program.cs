@@ -5,7 +5,6 @@ using Umbraco.Cms.Web.Common.ApplicationBuilder;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Umbraco with required services
 builder.CreateUmbracoBuilder()
     .AddBackOffice()
     .AddWebsite()
@@ -13,26 +12,23 @@ builder.CreateUmbracoBuilder()
     .AddComposers()
     .Build();
 
-// Configure the ApplicationDbContext with SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("umbracoDbDSN")));
 
-// Add HTTP client services for controllers
 builder.Services.AddHttpClient<ExchangeRatesController>();
+
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-// Automatically apply migrations on startup
 using (var serviceScope = app.Services.CreateScope())
 {
     var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.Migrate(); // Apply any pending migrations
+    dbContext.Database.Migrate();
 }
 
-// Boot Umbraco
 await app.BootUmbracoAsync();
 
-// Configure Umbraco middleware and endpoints
 app.UseUmbraco()
     .WithMiddleware(u =>
     {
@@ -46,5 +42,4 @@ app.UseUmbraco()
         u.UseWebsiteEndpoints();
     });
 
-// Run the application
 await app.RunAsync();

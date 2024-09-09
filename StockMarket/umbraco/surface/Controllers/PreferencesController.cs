@@ -66,13 +66,12 @@ namespace StockMarket.Controllers
             }
         }
 
-        
         public class RemovePreferenceModel
         {
             public string Currency { get; set; }
             public decimal Rate { get; set; }
         }
-        
+
         [HttpDelete("removePreference")]
         public IActionResult RemovePreference([FromBody] RemovePreferenceModel model)
         {
